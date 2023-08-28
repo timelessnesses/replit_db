@@ -1,32 +1,44 @@
 use std;
 use reqwest;
 
+// Configuration struct that contains information needed for Database.
 pub struct Config {
     url: String
 }
 
 #[derive(Debug, Clone)]
+// Error kind. (Http Error, No Item Found Error, Decode String Error)
 pub enum ErrorKind {
-    HttpError,
-    NoItemFoundError,
-    DecodeError
+    HttpError, // Http error (when something goes wrong in reqwest.)
+    NoItemFoundError, // No item found error (when item isn't exists)
+    DecodeError // Decoding string error (when the string is undecodable)
 }
 
 #[derive(Debug, Clone)]
+// Error struct for giving useful information about what goes wrong.
 pub struct Error {
-    kind: ErrorKind,
-    message: String
+    // Error kind (See `ErrorKind`)
+    pub kind: ErrorKind,
+    // Message
+    pub message: String
 }
 
+// Synchronous Replit Database Adapter for normal uses.
+// Contains same APIs as `AsynchronousReplitDatabase`
 pub struct SynchronousReplitDatabase {
     config: Config
 }
 
+// Asynchronous Replit Database Adapter for asynchronous operation. (supports tokio(?), and async-std(?))
+// Contains same APIs as `SynchronousReplitDatabase`
 pub struct AsynchronousReplitDatabase {
     config: Config
 }
 
 impl Config {
+    // Creating new `Config` struct with default configuration.
+    // With a possibility of `std::env::VarError` due to enviroment variable isn't exists.
+    // If that happens, You should use `Config::new_custom_url` for defining your own database URL instead.
     pub fn new() -> Result<Config, std::env::VarError> {
         let res = std::env::var("REPLIT_DATABASE_ENV");
         if res.is_err() {
@@ -37,6 +49,10 @@ impl Config {
         })
     }
 
+   // Creating a new `Config` struct with custom URL configuration
+   // This function also checks if the `url` parameter is kv.replit.com or not
+   // ## Parameters
+   // - `url`: `String` = Replit database URL.
     pub fn new_custom_url(url: String) -> Config {
 	if !url.contains("kv.replit.com") {
             panic!("Invalid URL for custom URL.: {}", url);
@@ -55,9 +71,12 @@ impl std::fmt::Display for Error {
 }
 
 impl SynchronousReplitDatabase {
+    // Creating new `SynchronousReplitDatabase` with configuration you provided.
     pub fn new(config: Config) -> Self {
         return Self {config: config}
     }
+
+    // Set a new key (or override the key) with a value.
     pub fn set(&self, key: String, value: String) -> Result<(), Error> {
         let client = reqwest::blocking::Client::new();
         let payload = format!("{}={}", key.to_string(), value.to_string());
