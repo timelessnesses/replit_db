@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Rukchad Wongprayoon <timelessnesses@timelessnesses.me>"]
 description = "A rust package for supporting Replit database. (Unofficial)"
+license-file="./LICENSE"
+documentation = "https://docs.rs/replit_db"
+homepage = "https://github.com/timelessnesses/replit_db"
+repository = "https://github.com/timelessnesses/replit_db"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
