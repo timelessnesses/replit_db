@@ -11,11 +11,11 @@ An unofficial database adapater for Replit Database for Rust!
 ## Example
 
 ```rust
-use replit_db;
+use replit_db::{self, Synchronous};
 
 fn main() {
     let config = replit_db::Config::new();
-    let db = replit_db::SynchronousReplitDatabase::new(config);
+    let db = replit_db::Database::new(config);
     let res = db.set("testings".to_string(), "testers".to_string());
     match res {
         Ok(()) => println!("Successful!"),
@@ -26,6 +26,6 @@ fn main() {
 ```
 
 All documentations will be in the comment and intellisense.  
-Also for asynchronous version please use `replit_db::AsynchrnousReplitDatabase`
+Also for asynchronous version please use `replit_db::Asynchronous` trait.
 
 
