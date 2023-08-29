@@ -2,6 +2,12 @@
 
 An unofficial database adapater for Replit Database for Rust!
 
+## Installation
+
+```sh
+cargo add replit_db
+```
+
 ## Supports
 
 - Synchronous
@@ -25,7 +31,6 @@ fn main() {
 }
 ```
 
-All documentations will be in the comment and intellisense.  
+All [documentations](https://replit-db.doc.timelessnesses.me/) will be in the comment and intellisense.  (I hosted my own documentation since docs.rs is slow)
 Also for asynchronous version please use `replit_db::Asynchronous` trait.
-
 
