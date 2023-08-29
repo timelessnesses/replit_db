@@ -26,7 +26,7 @@ pub struct Error {
     pub message: String
 }
 
-/// Database main struct.
+/// Database main struct.  
 /// Please use this database with traits. (Availables are [`Synchronous`] and [`Asynchronous`])
 pub struct Database {
     config: Config
@@ -34,40 +34,41 @@ pub struct Database {
 
 /// Synchronous support for Database struct. Use this trait by import it then use it right away!
 pub trait Synchronous {
-    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
     fn set(&self, key: impl ToString, value: impl ToString) -> Result<(), Error>;
-    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn get(&self, key: impl ToString) -> Result<String, Error>;
-    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn delete(&self, key: impl ToString) -> Result<(), Error>;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
 }
 
+/// Asynchronous support for Database struct. Use this trait by import it then use it right away!
 #[async_trait::async_trait]
 pub trait Asynchronous {
-    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
     async fn set<T>(&self, key: T, value: T) -> Result<(), Error> where T: ToString + Send;
-    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn get<T>(&self, key: T) -> Result<String, Error> where T: ToString + Send;
-    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn delete<T>(&self, key: T) -> Result<(), Error> where T: ToString + Send;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]  
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     async fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
 }
 
 impl Config {
-    /// Creating new [`Config`] struct with default configuration.
-    /// With a possibility of [`std::env::VarError`] due to enviroment variable isn't exists.
-    /// If that happens, You should use [`Config::new_custom_url`] for defining your own database URL instead.
+    /// Creating new [`Config`] struct with default configuration.  
+    /// With a possibility of [`std::env::VarError`] due to enviroment variable isn't exists.  
+    /// If that happens, You should use [`Config::new_custom_url`] for defining your own database URL instead.  
     pub fn new() -> Result<Config, std::env::VarError> {
         let res = std::env::var("REPLIT_DATABASE_ENV");
         if res.is_err() {
@@ -78,8 +79,8 @@ impl Config {
         })
     }
 
-   /// Creating a new [`Config`] struct with custom URL configuration
-   /// This function also checks if the `url` parameter is kv.replit.com or not
+   /// Creating a new [`Config`] struct with custom URL configuration  
+   /// This function also checks if the `url` parameter is kv.replit.com or not  
     pub fn new_custom_url(url: String) -> Config {
 	if !url.contains("kv.replit.com") {
             panic!("Invalid URL for custom URL.: {}", url);
