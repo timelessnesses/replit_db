@@ -1,5 +1,8 @@
+#![allow(dead_code)] // `new` Functions are not dead code you dumb fuck.
+
 use std;
 use reqwest;
+use async_trait;
 
 // Configuration struct that contains information needed for Database.
 pub struct Config {
@@ -23,16 +26,25 @@ pub struct Error {
     pub message: String
 }
 
-// Synchronous Replit Database Adapter for normal uses.
-// Contains same APIs as `AsynchronousReplitDatabase`
-pub struct SynchronousReplitDatabase {
+// Database main struct.
+// Please use this database with traits. (Availables are `replit_db::Synchronous` and `replit_db::Asynchronous`)
+pub struct Database {
     config: Config
 }
 
-// Asynchronous Replit Database Adapter for asynchronous operation. (supports tokio(?), and async-std(?))
-// Contains same APIs as `SynchronousReplitDatabase`
-pub struct AsynchronousReplitDatabase {
-    config: Config
+pub trait Synchronous {
+    fn set(&self, key: impl ToString, value: impl ToString) -> Result<(), Error>;
+    fn get(&self, key: impl ToString) -> Result<String, Error>;
+    fn delete(&self, key: impl ToString) -> Result<(), Error>;
+    fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
+}
+
+#[async_trait::async_trait]
+pub trait Asynchronous {
+    async fn set<T>(&self, key: T, value: T) -> Result<(), Error> where T: ToString + Send;
+    async fn get<T>(&self, key: T) -> Result<String, Error> where T: ToString + Send;
+    async fn delete<T>(&self, key: T) -> Result<(), Error> where T: ToString + Send;
+    async fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
 }
 
 impl Config {
@@ -70,14 +82,15 @@ impl std::fmt::Display for Error {
     }
 }
 
-impl SynchronousReplitDatabase {
-    // Creating new `SynchronousReplitDatabase` with configuration you provided.
+impl Database {
     pub fn new(config: Config) -> Self {
-        return Self {config: config}
+        return Self { config: config }
     }
+}
 
-    // Set a new key (or override the key) with a value.
-    pub fn set(&self, key: String, value: String) -> Result<(), Error> {
+impl Synchronous for Database {
+
+    fn set(&self, key: impl ToString, value: impl ToString) -> Result<(), Error> {
         let client = reqwest::blocking::Client::new();
         let payload = format!("{}={}", key.to_string(), value.to_string());
         let response = client.post(self.config.url.as_str().to_string()).body(payload).send();
@@ -90,7 +103,7 @@ impl SynchronousReplitDatabase {
         return Ok(())
     }
 
-    pub fn get(&self, key: String) -> Result<String, Error> {
+    fn get(&self, key: impl ToString) -> Result<String, Error> {
         let client = reqwest::blocking::Client::new();
         let response = client.get(self.config.url.as_str().to_string() + format!("/{}", key.to_string()).as_str()).send();
         if response.is_err() {
@@ -111,7 +124,7 @@ impl SynchronousReplitDatabase {
         return Ok(content)
     }
 
-    pub fn delete(&self, key: String) -> Result<(), Error> {
+    fn delete(&self, key: impl ToString) -> Result<(), Error> {
         let client = reqwest::blocking::Client::new();
         let response = client.delete(self.config.url.as_str().to_string() + format!("/{}", key.to_string()).as_str()).send();
 
@@ -131,7 +144,7 @@ impl SynchronousReplitDatabase {
         }
         return Ok(())
     }
-    pub fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
+    fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
 
         let prefix2: String;
 
@@ -164,11 +177,9 @@ impl SynchronousReplitDatabase {
     }
 }
 
-impl AsynchronousReplitDatabase {
-    pub fn new(config: Config) -> Self {
-        return Self {config: config}
-    }
-    pub async fn set(&self, key: String, value: String) -> Result<(), Error> {
+#[async_trait::async_trait]
+impl Asynchronous for Database {
+    async fn set<T>(&self, key: T, value: T) -> Result<(), Error> where T: ToString + Send {
         let client = reqwest::Client::new();
         let payload = format!("{}={}", key.to_string(), value.to_string());
         let response = client.post(self.config.url.as_str().to_string()).body(payload).send().await;
@@ -181,7 +192,7 @@ impl AsynchronousReplitDatabase {
         return Ok(())
     }
 
-    pub async fn get(&self, key: String) -> Result<String, Error> {
+    async fn get<T>(&self, key: T) -> Result<String, Error> where T: ToString + Send {
         let client = reqwest::Client::new();
         let response = client.get(self.config.url.as_str().to_string() + format!("/{}", key.to_string()).as_str()).send().await;
         if response.is_err() {
@@ -202,7 +213,7 @@ impl AsynchronousReplitDatabase {
         return Ok(content)
     }
 
-    pub async fn delete(&self, key: String) -> Result<(), Error> {
+    async fn delete<T>(&self, key: T) -> Result<(), Error> where T: ToString + Send {
         let client = reqwest::Client::new();
         let response = client.delete(self.config.url.as_str().to_string() + format!("/{}", key.to_string()).as_str()).send().await;
 
@@ -222,7 +233,7 @@ impl AsynchronousReplitDatabase {
         }
         return Ok(())
     }
-    pub async fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
+    async fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
 
         let prefix2: String;
 
@@ -252,5 +263,18 @@ impl AsynchronousReplitDatabase {
             variables.push(v.to_string());
         }
         return Ok(variables)
+    }
+}
+
+#[cfg(test)]
+mod async_tests {
+    use crate::{Database, Asynchronous, Config};
+    #[tokio::test]
+    async fn testings() {
+        let db = Database::new(Config::new().unwrap());
+        match db.set("sex", "sex").await {
+            Ok(_) => {},
+            Err(_) => assert!(false, "Something went wrong when testing set function.")
+        }
     }
 }
