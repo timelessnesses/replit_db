@@ -70,7 +70,7 @@ impl Config {
     /// With a possibility of [`std::env::VarError`] due to enviroment variable isn't exists.  
     /// If that happens, You should use [`Config::new_custom_url`] for defining your own database URL instead.  
     pub fn new() -> Result<Config, std::env::VarError> {
-        let res = std::env::var("REPLIT_DB_ENV");
+        let res = std::env::var("REPLIT_DB_URL");
         if res.is_err() {
             return Err(res.err().unwrap())
         }
