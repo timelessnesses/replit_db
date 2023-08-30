@@ -22,7 +22,7 @@ use replit_db::{self, Synchronous};
 fn main() {
     let config = replit_db::Config::new();
     let db = replit_db::Database::new(config);
-    let res = db.set("testings".to_string(), "testers".to_string());
+    let res = db.set("testings", 30);
     match res {
         Ok(()) => println!("Successful!"),
         Err(e) => println!("{}",e.to_string())
