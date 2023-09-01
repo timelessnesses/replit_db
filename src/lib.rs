@@ -137,7 +137,7 @@ impl Synchronous for Database {
                     + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
             )
             .send();
-		println!("{:#?}", response);
+		// println!("{:#?}", response); debugging
         if response.is_err() {
             return Err(Error {
                 kind: ErrorKind::HttpError,
