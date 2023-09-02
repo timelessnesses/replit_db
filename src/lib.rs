@@ -102,6 +102,9 @@ impl std::fmt::Display for Error {
 }
 
 impl Database {
+    
+    /// Creating new Database instance with [`Config`] struct.
+    /// You still need traits for this struct to work.
     pub fn new(config: Config) -> Self {
         return Self { config: config };
     }
