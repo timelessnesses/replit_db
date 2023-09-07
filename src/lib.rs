@@ -47,7 +47,7 @@ pub trait Synchronous {
     /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn delete(&self, key: impl ToString) -> Result<(), Error>;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     fn list(&self, prefix: Option<impl ToString>) -> Result<std::vec::Vec<String>, Error>;
 }
@@ -70,7 +70,7 @@ pub trait Asynchronous {
     async fn delete<T>(&self, key: T) -> Result<(), Error>
     where
         T: ToString + Send;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>
     where
