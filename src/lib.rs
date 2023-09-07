@@ -72,7 +72,7 @@ pub trait Asynchronous {
         T: ToString + Send;
     /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`]
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
-    async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>;
+    async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>
     where
 	T: ToString + Send;
 }
