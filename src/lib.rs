@@ -13,9 +13,12 @@ pub struct Config {
 #[derive(Debug, Clone)]
 /// Error kind. (Http Error, No Item Found Error, Decode String Error)
 pub enum ErrorKind {
-    HttpError,        // Http error (when something goes wrong in reqwest.)
-    NoItemFoundError, // No item found error (when item isn't exists)
-    DecodeError,      // Decoding string error (when the string is undecodable)
+    ///  Any [`reqwest`]'s errors will be here.
+    HttpError,
+    /// That item specified isn't exists in the database.
+    NoItemFoundError,
+    /// Couldn't decode bytes to string UTF-8.
+    DecodeError,
 }
 
 #[derive(Debug, Clone)]
@@ -44,9 +47,9 @@ pub trait Synchronous {
     /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn delete(&self, key: impl ToString) -> Result<(), Error>;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`]
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
-    fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
+    fn list(&self, prefix: Option<impl ToString>) -> Result<std::vec::Vec<String>, Error>;
 }
 
 /// Asynchronous support for Database struct. Use this trait by import it then use it right away!
@@ -67,9 +70,11 @@ pub trait Asynchronous {
     async fn delete<T>(&self, key: T) -> Result<(), Error>
     where
         T: ToString + Send;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some("prefix")`] instead of [`None`]
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`]
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
-    async fn list(&self, prefix: Option<String>) -> Result<std::vec::Vec<String>, Error>;
+    async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>;
+    where
+	T: ToString + Send;
 }
 
 impl Config {
@@ -181,13 +186,13 @@ impl Synchronous for Database {
         }
         return Ok(());
     }
-    fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
+    fn list(&self, prefix: Option<impl ToString>) -> Result<Vec<String>, Error> {
         let prefix2: String;
-
+	    
         if prefix.is_none() {
             prefix2 = "".to_string();
         } else {
-            prefix2 = prefix.unwrap();
+            prefix2 = prefix.unwrap().to_string();
         }
         let client = reqwest::blocking::Client::new();
         let response = client
@@ -303,13 +308,16 @@ impl Asynchronous for Database {
         }
         return Ok(());
     }
-    async fn list(&self, prefix: Option<String>) -> Result<Vec<String>, Error> {
+    async fn list<T>(&self, prefix: Option<T>) -> Result<Vec<String>, Error>
+    where
+	T: ToString + Send
+    {
         let prefix2: String;
-
+	    
         if prefix.is_none() {
             prefix2 = "".to_string();
         } else {
-            prefix2 = prefix.unwrap();
+            prefix2 = prefix.unwrap().to_string();
         }
         let client = reqwest::Client::builder().build().unwrap();
         let response = client
