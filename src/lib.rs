@@ -74,7 +74,7 @@ pub trait Asynchronous {
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>
     where
-	T: ToString + Send;
+        T: ToString + Send;
 }
 
 impl Config {
@@ -107,7 +107,6 @@ impl std::fmt::Display for Error {
 }
 
 impl Database {
-    
     /// Creating new Database instance with [`Config`] struct.
     /// You still need traits for this struct to work.
     pub fn new(config: Config) -> Self {
@@ -145,7 +144,7 @@ impl Synchronous for Database {
                     + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
             )
             .send();
-		// println!("{:#?}", response); debugging
+        // println!("{:#?}", response); debugging
         if response.is_err() {
             return Err(Error {
                 kind: ErrorKind::HttpError,
@@ -188,7 +187,7 @@ impl Synchronous for Database {
     }
     fn list(&self, prefix: Option<impl ToString>) -> Result<Vec<String>, Error> {
         let prefix2: String;
-	    
+
         if prefix.is_none() {
             prefix2 = "".to_string();
         } else {
@@ -286,10 +285,7 @@ impl Asynchronous for Database {
         let response = client
             .delete(
                 self.config.url.as_str().to_string()
-                    + format!(
-                        "/{}",
-                        urlencoding::encode(key.to_string().as_str())
-                    ).as_str(),
+                    + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
             )
             .send()
             .await;
@@ -310,10 +306,10 @@ impl Asynchronous for Database {
     }
     async fn list<T>(&self, prefix: Option<T>) -> Result<Vec<String>, Error>
     where
-	T: ToString + Send
+        T: ToString + Send,
     {
         let prefix2: String;
-	    
+
         if prefix.is_none() {
             prefix2 = "".to_string();
         } else {
