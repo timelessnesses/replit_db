@@ -288,7 +288,7 @@ impl Asynchronous for Database {
     where
         T: AsRef<str> + Send,
     {
-        let client = reqwest::Client::builder().build().unwrap();
+        let client = reqwest::Client::new();
         let payload = format!(
             "{}={}",
             urlencoding::encode(key.as_ref()),
@@ -313,7 +313,7 @@ impl Asynchronous for Database {
     where
         T: AsRef<str> + Send,
     {
-        let client = reqwest::Client::builder().build().unwrap();
+        let client = reqwest::Client::new();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
@@ -342,7 +342,7 @@ impl Asynchronous for Database {
     where
         T: AsRef<str> + Send,
     {
-        let client = reqwest::Client::builder().build().unwrap();
+        let client = reqwest::Client::new();
         let response = client
             .delete(
                 self.config.url.as_str().to_string()
@@ -373,7 +373,7 @@ impl Asynchronous for Database {
             Some(p) => p.as_ref(),
             None => "",
         };
-        let client = reqwest::Client::builder().build().unwrap();
+        let client = reqwest::Client::new();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
