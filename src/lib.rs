@@ -1,20 +1,69 @@
 //! # replit_db
-//! 
+//!
 //! An unofficial database adapater for Replit Database for Rust!
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! You need to import [`Database`], [`Config`], and a trait ([`Synchronous`], [`Asynchronous`]).
-//! Then initialize [`Database`]`::new()` with [`Config`]`::new()` then database will give you function in either synchronously or asynchronously based on trait you imported in to the scope.
-//! 
+//! Then initialize [`Database::new()`] with [`Config::new()`] then database will give you function in either synchronously or asynchronously based on trait you imported in to the scope.
+//!
 //! ## Possible Exceptions
+//!
+//! [`Error`] struct contain useful informations and both [`std::fmt::Display`] and [`std::error::Error`] (support "?").
+//! Also there's different error kinds that can happens, here's the list of them.
+//! - [`ErrorKind::HttpError`]
+//!     Raised when there's something wrong when doing HTTP request.
+//! - [`ErrorKind::NoItemFoundError`]
+//!     Raised when item is not found
+//! - [`ErrorKind::DecodeError`]
+//!     Raised when the key name is undecodable to UTF-8 string.
+//!
+//! ## Examples
+//!
+//! ### Example (Synchronous)
+//!
+//! ```rust
+//! use replit_db::{self, Synchronous};
+//!
+//! fn main() -> Result<(), Error> {
+//!
+//!     let db = replit_db::Database::new(replit_db::Config::new());
+//!     db.get("Hello")?; // Get a value from key's name.
+//!     db.set("Hello", "World")?; // Set a value to that key
+//!     db.delete("Hello")?; // Delete a key
+//!     db.list(replit_db::NONE)?; // List all keys
+//!     db.get(Some("H"))?; // List keys with "H" prefix
+//! }
+//! ```
+//!
+//! ### Example (Asynchronous)
+//!
+//! ```rust
+//! use replit_db::{self, Asynchronous};
+//! use tokio;
+//!
+//! #[tokio::main]
+//! fn main() -> Result<(), Error> {
+//!
+//!     let db = replit_db::Database::new(replit_db::Config::new());
+//!     db.get("Hello").await?; // Get a value from key's name.
+//!     db.set("Hello", "World").await?; // Set a value to that key
+//!     db.delete("Hello").await?; // Delete a key
+//!     db.list(replit_db::NONE).await?; // List all keys
+//!     db.get(Some("H")).await?; // List keys with "H" prefix
+//! }
+//! ```
 
 use async_trait;
 use reqwest;
 use std;
 use urlencoding;
 
+/// This constant is for storing replit's db's domain name. This would likely change by whatever the reason is.
 const MAIN_DOMAIN: &str = "kv.replit.com";
+
+/// This type is a shorthand for [`Option<&str>::None`] or [`None::<&str>`].
+pub const NONE: Option<&str> = None;
 
 /// Configuration struct that contains information needed for Database.
 pub struct Config {
@@ -107,7 +156,9 @@ impl Config {
             panic!("Invalid URL for custom URL.: {}", url);
         }
 
-        return Self { url: url.to_owned() };
+        return Self {
+            url: url.to_owned(),
+        };
     }
 }
 
@@ -201,7 +252,7 @@ impl Synchronous for Database {
     fn list(&self, prefix: Option<impl AsRef<str>>) -> Result<Vec<String>, Error> {
         let prefix2 = match &prefix {
             Some(p) => p.as_ref(),
-            None => ""
+            None => "",
         };
         let client = reqwest::blocking::Client::new();
         let response = client
@@ -320,7 +371,7 @@ impl Asynchronous for Database {
     {
         let prefix2 = match &prefix {
             Some(p) => p.as_ref(),
-            None => ""
+            None => "",
         };
         let client = reqwest::Client::builder().build().unwrap();
         let response = client
