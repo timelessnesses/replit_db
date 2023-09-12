@@ -27,7 +27,7 @@ fn main() {
         Ok(()) => println!("Successful!"),
         Err(e) => println!("{}",e.to_string())
     }
-   println!(db.get("testings")).unwrap();
+   println!(db.get("testings").unwrap());
 }
 ```
 
