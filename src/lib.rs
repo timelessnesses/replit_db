@@ -1,9 +1,20 @@
-#![allow(dead_code)] // `new` Functions are not dead code you dumb fuck.
+//! # replit_db
+//! 
+//! An unofficial database adapater for Replit Database for Rust!
+//! 
+//! ## Usage
+//! 
+//! You need to import [`Database`], [`Config`], and a trait ([`Synchronous`], [`Asynchronous`]).
+//! Then initialize [`Database`]`::new()` with [`Config`]`::new()` then database will give you function in either synchronously or asynchronously based on trait you imported in to the scope.
+//! 
+//! ## Possible Exceptions
 
 use async_trait;
 use reqwest;
 use std;
 use urlencoding;
+
+const MAIN_DOMAIN: &str = "kv.replit.com";
 
 /// Configuration struct that contains information needed for Database.
 pub struct Config {
@@ -40,16 +51,16 @@ pub struct Database {
 pub trait Synchronous {
     /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
-    fn set(&self, key: impl ToString, value: impl ToString) -> Result<(), Error>;
+    fn set(&self, key: impl AsRef<str>, value: impl AsRef<str>) -> Result<(), Error>;
     /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
-    fn get(&self, key: impl ToString) -> Result<String, Error>;
+    fn get(&self, key: impl AsRef<str>) -> Result<String, Error>;
     /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
-    fn delete(&self, key: impl ToString) -> Result<(), Error>;
+    fn delete(&self, key: impl AsRef<str>) -> Result<(), Error>;
     /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
-    fn list(&self, prefix: Option<impl ToString>) -> Result<std::vec::Vec<String>, Error>;
+    fn list(&self, prefix: Option<impl AsRef<str>>) -> Result<std::vec::Vec<String>, Error>;
 }
 
 /// Asynchronous support for Database struct. Use this trait by import it then use it right away!
@@ -59,28 +70,28 @@ pub trait Asynchronous {
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
     async fn set<T>(&self, key: T, value: T) -> Result<(), Error>
     where
-        T: ToString + Send;
+        T: AsRef<str> + Send;
     /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn get<T>(&self, key: T) -> Result<String, Error>
     where
-        T: ToString + Send;
+        T: AsRef<str> + Send;
     /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn delete<T>(&self, key: T) -> Result<(), Error>
     where
-        T: ToString + Send;
+        T: AsRef<str> + Send;
     /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>
     where
-        T: ToString + Send;
+        T: AsRef<str> + Send;
 }
 
 impl Config {
-    /// Creating new [`Config`] struct with default configuration.
+    /// Creating new [`Config`] struct with default configuration. (This will get Replit's Database URL through enviroment variable `REPLIT_DB_URL`)
     /// With a possibility of [`std::env::VarError`] due to enviroment variable isn't exists.
-    /// If that happens, You should use [`Config::new_custom_url`] for defining your own database URL instead.
+    /// If that happens, You should use [`Config`]'s `new_custom_url` for defining your own database URL instead.
     pub fn new() -> Result<Config, std::env::VarError> {
         let res = std::env::var("REPLIT_DB_URL");
         if res.is_err() {
@@ -89,14 +100,14 @@ impl Config {
         return Ok(Self { url: res.unwrap() });
     }
 
-    /// Creating a new [`Config`] struct with custom URL configuration
-    /// This function also checks if the `url` parameter is kv.replit.com or not
-    pub fn new_custom_url(url: String) -> Config {
-        if !url.contains("kv.replit.com") {
+    /// Creating a new [`Config`] struct with custom URL configuration.
+    /// This function also checks if the `url` parameter is kv.replit.com or not. If kv.replit.com is not in the `url` argument, then it will panic.
+    pub fn new_custom_url(url: &str) -> Config {
+        if !url.contains(MAIN_DOMAIN) {
             panic!("Invalid URL for custom URL.: {}", url);
         }
 
-        return Self { url: url };
+        return Self { url: url.to_owned() };
     }
 }
 
@@ -105,6 +116,8 @@ impl std::fmt::Display for Error {
         return f.write_str(format!("{:#?}: {}", self.kind, self.message).as_str());
     }
 }
+
+impl std::error::Error for Error {} // Thanks nox!
 
 impl Database {
     /// Creating new Database instance with [`Config`] struct.
@@ -115,12 +128,12 @@ impl Database {
 }
 
 impl Synchronous for Database {
-    fn set(&self, key: impl ToString, value: impl ToString) -> Result<(), Error> {
+    fn set(&self, key: impl AsRef<str>, value: impl AsRef<str>) -> Result<(), Error> {
         let client = reqwest::blocking::Client::new();
         let payload = format!(
             "{}={}",
-            urlencoding::encode(key.to_string().as_str()),
-            urlencoding::encode(value.to_string().as_str())
+            urlencoding::encode(key.as_ref()),
+            urlencoding::encode(value.as_ref())
         );
         let response = client
             .post(self.config.url.as_str().to_string())
@@ -136,12 +149,12 @@ impl Synchronous for Database {
         return Ok(());
     }
 
-    fn get(&self, key: impl ToString) -> Result<String, Error> {
+    fn get(&self, key: impl AsRef<str>) -> Result<String, Error> {
         let client = reqwest::blocking::Client::new();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
-                    + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
+                    + format!("/{}", urlencoding::encode(key.as_ref())).as_str(),
             )
             .send();
         // println!("{:#?}", response); debugging
@@ -162,12 +175,12 @@ impl Synchronous for Database {
         return Ok(content);
     }
 
-    fn delete(&self, key: impl ToString) -> Result<(), Error> {
+    fn delete(&self, key: impl AsRef<str>) -> Result<(), Error> {
         let client = reqwest::blocking::Client::new();
         let response = client
             .delete(
                 self.config.url.as_str().to_string()
-                    + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
+                    + format!("/{}", urlencoding::encode(key.as_ref())).as_str(),
             )
             .send();
 
@@ -185,19 +198,16 @@ impl Synchronous for Database {
         }
         return Ok(());
     }
-    fn list(&self, prefix: Option<impl ToString>) -> Result<Vec<String>, Error> {
-        let prefix2: String;
-
-        if prefix.is_none() {
-            prefix2 = "".to_string();
-        } else {
-            prefix2 = prefix.unwrap().to_string();
-        }
+    fn list(&self, prefix: Option<impl AsRef<str>>) -> Result<Vec<String>, Error> {
+        let prefix2 = match &prefix {
+            Some(p) => p.as_ref(),
+            None => ""
+        };
         let client = reqwest::blocking::Client::new();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
-                    + format!("?prefix={}", urlencoding::encode(prefix2.as_str())).as_str(),
+                    + format!("?prefix={}", urlencoding::encode(prefix2)).as_str(),
             )
             .send();
         if response.is_err() {
@@ -225,13 +235,13 @@ impl Synchronous for Database {
 impl Asynchronous for Database {
     async fn set<T>(&self, key: T, value: T) -> Result<(), Error>
     where
-        T: ToString + Send,
+        T: AsRef<str> + Send,
     {
         let client = reqwest::Client::builder().build().unwrap();
         let payload = format!(
             "{}={}",
-            urlencoding::encode(key.to_string().as_str()),
-            urlencoding::encode(value.to_string().as_str())
+            urlencoding::encode(key.as_ref()),
+            urlencoding::encode(value.as_ref())
         );
         let response = client
             .post(self.config.url.as_str().to_string())
@@ -250,13 +260,13 @@ impl Asynchronous for Database {
 
     async fn get<T>(&self, key: T) -> Result<String, Error>
     where
-        T: ToString + Send,
+        T: AsRef<str> + Send,
     {
         let client = reqwest::Client::builder().build().unwrap();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
-                    + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
+                    + format!("/{}", urlencoding::encode(key.as_ref())).as_str(),
             )
             .send()
             .await;
@@ -279,13 +289,13 @@ impl Asynchronous for Database {
 
     async fn delete<T>(&self, key: T) -> Result<(), Error>
     where
-        T: ToString + Send,
+        T: AsRef<str> + Send,
     {
         let client = reqwest::Client::builder().build().unwrap();
         let response = client
             .delete(
                 self.config.url.as_str().to_string()
-                    + format!("/{}", urlencoding::encode(key.to_string().as_str())).as_str(),
+                    + format!("/{}", urlencoding::encode(key.as_ref())).as_str(),
             )
             .send()
             .await;
@@ -306,20 +316,17 @@ impl Asynchronous for Database {
     }
     async fn list<T>(&self, prefix: Option<T>) -> Result<Vec<String>, Error>
     where
-        T: ToString + Send,
+        T: AsRef<str> + Send,
     {
-        let prefix2: String;
-
-        if prefix.is_none() {
-            prefix2 = "".to_string();
-        } else {
-            prefix2 = prefix.unwrap().to_string();
-        }
+        let prefix2 = match &prefix {
+            Some(p) => p.as_ref(),
+            None => ""
+        };
         let client = reqwest::Client::builder().build().unwrap();
         let response = client
             .get(
                 self.config.url.as_str().to_string()
-                    + format!("?prefix={}", urlencoding::encode(prefix2.as_str())).as_str(),
+                    + format!("?prefix={}", urlencoding::encode(prefix2)).as_str(),
             )
             .send()
             .await;

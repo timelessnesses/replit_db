@@ -569,11 +569,11 @@ dependencies = [
 
 [[package]]
 name = "replit_db"
-version = "0.1.0"
+version = "1.0.2"
 dependencies = [
  "async-trait",
  "reqwest",
- "tokio",
+ "urlencoding",
 ]
 
 [[package]]
@@ -794,19 +794,7 @@ dependencies = [
  "num_cpus",
  "pin-project-lite",
  "socket2 0.5.3",
- "tokio-macros",
  "windows-sys",
-]
-
-[[package]]
-name = "tokio-macros"
-version = "2.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "630bdcf245f78637c13ec01ffae6187cca34625e8c63150d424b59e55af2675e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
@@ -896,6 +884,12 @@ dependencies = [
  "idna",
  "percent-encoding",
 ]
+
+[[package]]
+name = "urlencoding"
+version = "2.1.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "vcpkg"
