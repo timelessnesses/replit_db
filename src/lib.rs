@@ -22,35 +22,38 @@
 //!
 //! ### Example (Synchronous)
 //!
-//! ```rust
-//! use replit_db::{self, Synchronous};
+//! ```rust,should_panic
+//! use replit_db::{Synchronous, Error};
 //!
 //! fn main() -> Result<(), Error> {
 //!
-//!     let db = replit_db::Database::new(replit_db::Config::new());
+//!     let db = replit_db::Database::new(replit_db::Config::new().unwrap());
 //!     db.get("Hello")?; // Get a value from key's name.
 //!     db.set("Hello", "World")?; // Set a value to that key
 //!     db.delete("Hello")?; // Delete a key
 //!     db.list(replit_db::NONE)?; // List all keys
-//!     db.get(Some("H"))?; // List keys with "H" prefix
+//!     db.list(Some("H"))?; // List keys with "H" prefix
+//!     return Ok(())
 //! }
 //! ```
 //!
 //! ### Example (Asynchronous)
 //!
-//! ```rust
-//! use replit_db::{self, Asynchronous};
+//! ```rust,should_panic
+//! use replit_db::{Asynchronous, Error};
+//!
 //! use tokio;
 //!
 //! #[tokio::main]
-//! fn main() -> Result<(), Error> {
+//! async fn main() -> Result<(), Error> {
 //!
-//!     let db = replit_db::Database::new(replit_db::Config::new());
+//!     let db = replit_db::Database::new(replit_db::Config::new().unwrap());
 //!     db.get("Hello").await?; // Get a value from key's name.
 //!     db.set("Hello", "World").await?; // Set a value to that key
 //!     db.delete("Hello").await?; // Delete a key
 //!     db.list(replit_db::NONE).await?; // List all keys
-//!     db.get(Some("H")).await?; // List keys with "H" prefix
+//!     db.list(Some("H")).await?; // List keys with "H" prefix
+//!     return Ok(())
 //! }
 //! ```
 
