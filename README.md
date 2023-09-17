@@ -20,7 +20,7 @@ cargo add replit_db
 use replit_db::{self, Synchronous};
 
 fn main() {
-    let config = replit_db::Config::new();
+    let config = replit_db::Config::new().unwrap();
     let db = replit_db::Database::new(config);
     let res = db.set("testings", 30);
     match res {
