@@ -1,6 +1,6 @@
 [package]
 name = "replit_db"
-version = "1.1.1"
+version = "1.1.2"
 edition = "2021"
 authors = ["Rukchad Wongprayoon <timelessnesses@timelessnesses.me>"]
 description = "A rust package for supporting Replit database. (Unofficial)"

@@ -98,16 +98,16 @@ pub struct Database {
 
 /// Synchronous support for Database struct. Use this trait by import it then use it right away!
 pub trait Synchronous {
-    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Set a variable. `key` and `value` MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
     fn set(&self, key: impl AsRef<str>, value: impl AsRef<str>) -> Result<(), Error>;
-    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Get a variable you just set. `key` MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn get(&self, key: impl AsRef<str>) -> Result<String, Error>;
-    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Delete a variable you just set. MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     fn delete(&self, key: impl AsRef<str>) -> Result<(), Error>;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`AsRef<str>`]. ([`str`] and [`String`] implemented this.) or [`NONE`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     fn list(&self, prefix: Option<impl AsRef<str>>) -> Result<std::vec::Vec<String>, Error>;
 }
@@ -115,22 +115,22 @@ pub trait Synchronous {
 /// Asynchronous support for Database struct. Use this trait by import it then use it right away!
 #[async_trait::async_trait]
 pub trait Asynchronous {
-    /// Set a variable. `key` and `value` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Set a variable. `key` and `value` MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exception is [`ErrorKind::HttpError`] for HttpError
     async fn set<T>(&self, key: T, value: T) -> Result<(), Error>
     where
         T: AsRef<str> + Send;
-    /// Get a variable you just set. `key` MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Get a variable you just set. `key` MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn get<T>(&self, key: T) -> Result<String, Error>
     where
         T: AsRef<str> + Send;
-    /// Delete a variable you just set. MUST implement [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead.
+    /// Delete a variable you just set. MUST implement [`AsRef<str>`]. ([`str`] and [`String`] implemented this.).
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::NoItemFoundError`] for no items were found in the database
     async fn delete<T>(&self, key: T) -> Result<(), Error>
     where
         T: AsRef<str> + Send;
-    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`std::string::ToString`] trait OR you could convert them to [`std::string::String`] instead of [`None`].
+    /// List variables. Optionally finding variable that contains defined prefix by passing [`Some`] with anything that implements [`AsRef<str>`]. ([`str`] and [`String`] implemented this.) or [`NONE`].
     /// Possible Exceptions are [`ErrorKind::HttpError`] for HttpError, [`ErrorKind::DecodeError`] Decoding string error.
     async fn list<T>(&self, prefix: Option<T>) -> Result<std::vec::Vec<String>, Error>
     where
