@@ -22,13 +22,17 @@ use replit_db::{self, Synchronous};
 fn main() {
     let config = replit_db::Config::new().unwrap();
     let db = replit_db::Database::new(config);
-    let res = db.set("testings", 30);
+    let res = db.set("testings", "30");
     match res {
         Ok(()) => println!("Successful!"),
         Err(e) => println!("{}",e.to_string())
     }
    println!(db.get("testings").unwrap());
-}
+   db.delete("testings").unwrap();
+   for var in db.list(replit_db::NONE).unwrap() {
+        println!(var);
+   } // you could list all variable by prefix with `Some("prefix")`
+}. 
 ```
 
 All [documentations](https://replit-db.doc.timelessnesses.me/) will be in the comment and intellisense.  (I hosted my own documentation since docs.rs is slow)
