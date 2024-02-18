@@ -153,15 +153,10 @@ impl Config {
     }
 
     /// Creating a new [`Config`] struct with custom URL configuration.
-    /// This function also checks if the `url` parameter is kv.replit.com or not. If kv.replit.com is not in the `url` argument, then it will panic.
     pub fn new_custom_url(url: &str) -> Config {
-        if !url.contains(MAIN_DOMAIN) {
-            panic!("Invalid URL for custom URL.: {}", url);
-        }
-
-        return Self {
+        return Ok(Self {
             url: url.to_owned(),
-        };
+        };)
     }
 }
 
